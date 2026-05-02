@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using FintechPlatform.Models;
-using FintechPlatform.Services; // Servisimizi ekliyoruz
-using Microsoft.AspNetCore.Http; // IFormFile için
+using FintechPlatform.Services;
+using System.Text.RegularExpressions; // Regex için gerekli
 
 namespace FintechPlatform.Controllers;
 
@@ -10,19 +10,16 @@ public class HomeController : Controller
 {
     private readonly HuggingFaceOcrService _ocrService;
 
-    // Servisi Constructor (Yapýcý Metot) ile içeri alýyoruz
     public HomeController(HuggingFaceOcrService ocrService)
     {
         _ocrService = ocrService;
     }
 
-    // Sayfa ilk açýldýðýnda çalýþan yer (GET)
     public IActionResult Index()
     {
         return View(new OcrViewModel());
     }
 
-    // Kullanýcý resim yükleyip butona bastýðýnda çalýþan yer (POST)
     [HttpPost]
     public async Task<IActionResult> ProcessOcr(OcrViewModel model)
     {
@@ -32,15 +29,30 @@ public class HomeController : Controller
             await model.UploadedFile.CopyToAsync(ms);
             var fileBytes = ms.ToArray();
             string base64String = Convert.ToBase64String(fileBytes);
-
-            // Dosya tipini alýyoruz (Örn: "application/pdf" veya "image/jpeg")
             string contentType = model.UploadedFile.ContentType;
 
-            // Servise hem veriyi hem de tipini gönderiyoruz
+            // 1. AI Servisinden ham metni al
             string result = await _ocrService.ProcessFileAsync(base64String, contentType);
-
             model.OcrResult = result;
+
+            // 2. Ham metin içinden verileri Regex ile ayýkla (Parsing)
+            // Beyanname formatýna göre sayýlarý yakalar (Örn: 1.920.200,90)
+            model.TicariKar = ExtractValue(result, "Ticari Bilanço Karý");
+            model.KKEG = ExtractValue(result, "Kanunen Kabul Edilmeyen Gider");
+            model.VergiMatrahi = ExtractValue(result, "Geçici Vergi Matrahý");
         }
         return View("Index", model);
+    }
+
+    // Yardýmcý Metot: Metin içinden etiket ismine göre sayýsal deðeri çeker
+    private string ExtractValue(string text, string fieldName)
+    {
+        if (string.IsNullOrEmpty(text)) return "0,00";
+
+        // Regex: Alan adýndan sonra gelen boru (|) karakterini ve yanýndaki sayýyý yakalar
+        string pattern = $@"{fieldName}\s*\|\s*([\d\.,]+)";
+        var match = Regex.Match(text, pattern);
+
+        return match.Success ? match.Groups[1].Value : "0,00";
     }
 }

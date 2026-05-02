@@ -6,43 +6,90 @@
 
 <div class="container mt-5">
     <div class="row">
-        <!-- SOL TARAF: Dosya Yükleme Alanı -->
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4>Finansal Belge Yükle</h4>
+        <!-- SOL TARAF: Dosya Yükleme -->
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Finansal Belge Yükle</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Dosya göndereceğimiz için enctype önemli! -->
                     <form asp-action="ProcessOcr" asp-controller="Home" method="post" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label class="form-label">Finansal Belge (PDF, PNG veya JPG):</label>
-                            <input type="file" asp-for="UploadedFile" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required />
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Belge Seçiniz (PDF, PNG, JPG):</label>
+                            <input type="file" asp-for="UploadedFile" class="form-control form-control-lg" accept=".jpg,.jpeg,.png,.pdf" required />
+                            <div class="form-text">Maksimum dosya boyutu: 5MB</div>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">AI ile Analiz Et</button>
+                        <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm">
+                            <i class="bi bi-cpu"></i> AI ile Analiz Et
+                        </button>
                     </form>
                 </div>
             </div>
+
+            @if (!string.IsNullOrEmpty(Model.OcrResult))
+            {
+                <div class="card mt-4 shadow border-0">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">Ham OCR Çıktısı (Debug)</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <textarea class="form-control font-monospace text-xs" style="height: 200px; font-size: 12px;" readonly>@Model.OcrResult</textarea>
+                    </div>
+                </div>
+            }
         </div>
 
-        <!-- SAĞ TARAF: Sonuç Görüntüleme Alanı -->
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-dark text-white">
-                    <h4>DeepSeek OCR Sonucu</h4>
+        <!-- SAĞ TARAF: Otomatik Doldurulan Form (Düzenlenebilir) -->
+        <div class="col-md-7">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-magic"></i> AI Analiz Sonuçları (Otomatik Dolum)</h5>
                 </div>
-                <div class="card-body" style="min-height: 300px; background-color: #f8f9fa;">
+                <div class="card-body" style="background-color: #fcfcfc;">
                     @if (!string.IsNullOrEmpty(Model.OcrResult))
                     {
-                        <!-- Gelen veriyi burada gösteriyoruz -->
-                        <pre><code>@Model.OcrResult</code></pre>
+                        <div class="alert alert-info py-2">
+                            <i class="bi bi-info-circle"></i> Veriler beyannameden otomatik okunmuştur. Gerekiyorsa elle düzeltebilirsiniz.
+                        </div>
 
-                        <!-- İlerleyen aşamalarda Üye 1'in veritabanına göndermek için buraya "Kaydet" butonu ekleyeceksin -->
-                        <button class="btn btn-warning mt-3 w-100">Veritabanına Kaydet</button>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="fw-bold">Ticari Bilanço Karı (TL)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₺</span>
+                                    <input type="text" asp-for="TicariKar" class="form-control form-control-lg bg-white" placeholder="0,00" />
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="fw-bold">Kanunen Kabul Edilmeyen Gider (KKEG)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₺</span>
+                                    <input type="text" asp-for="KKEG" class="form-control form-control-lg bg-white" placeholder="0,00" />
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="fw-bold">Geçici Vergi Matrahı</label>
+                                <div class="input-group border-primary">
+                                    <span class="input-group-text bg-primary text-white">₺</span>
+                                    <input type="text" asp-for="VergiMatrahi" class="form-control form-control-lg fw-bold" placeholder="0,00" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-warning btn-lg w-100 fw-bold shadow">
+                                <i class="bi bi-database-fill-add"></i> Veritabanına Kaydet
+                            </button>
+                        </div>
                     }
                     else
                     {
-                        <p class="text-muted">Sonuçlar burada görüntülenecek...</p>
+                        <div class="text-center py-5">
+                            <i class="bi bi-robot display-1 text-light"></i>
+                            <p class="text-muted mt-3">Belge yüklendiğinde analiz sonuçları burada listelenecek.</p>
+                        </div>
                     }
                 </div>
             </div>

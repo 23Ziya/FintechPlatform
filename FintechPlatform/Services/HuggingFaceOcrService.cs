@@ -14,56 +14,31 @@ namespace FintechPlatform.Services
             _httpClient = httpClient;
         }
 
+        // HuggingFaceOcrService.cs içindeki temel mantık
         public async Task<string> ProcessFileAsync(string base64Data, string contentType)
         {
-            // 1. ADIM: İŞLEMİ BAŞLAT (POST)
-            // Not: Adresi dökümandaki gibi 'gradio_api/call/run' olarak güncelledik
-            string postUrl = "https://merterbak-deepseek-ocr-demo.hf.space/gradio_api/call/run";
+            string baseUrl = "https://merterbak-deepseek-ocr-demo.hf.space/gradio_api/call/run";
 
-            var payload = new
+            // [0] ve [1] indisli parametrelerin her ikisine de dosyayı gönderiyoruz
+            var fileData = new { path = $"data:{contentType};base64,{base64Data}", meta = new { _type = "gradio.FileData" } };
+            var payload = new { data = new object[] { fileData, fileData, "📋 Markdown", "Analyze this tax document", 1 } };
+
+            var postResponse = await _httpClient.PostAsync(baseUrl, new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+            var eventData = await postResponse.Content.ReadAsStringAsync();
+            string eventId = JsonDocument.Parse(eventData).RootElement.GetProperty("event_id").GetString();
+
+            // AI'nın dökümanı işlemesi için bir süre bekle ve sonucu çek
+            await Task.Delay(5000);
+            var getResponse = await _httpClient.GetAsync($"{baseUrl}/{eventId}");
+            var rawContent = await getResponse.Content.ReadAsStringAsync();
+
+            // SSE (Server-Sent Events) formatını temizleme
+            if (rawContent.Contains("data:"))
             {
-                data = new object[] {
-                    null, // [0] Input Image
-                    new {
-                        path = $"data:{contentType};base64,{base64Data}", // [1] Dosya verisi
-                        meta = new { _type = "gradio.FileData" }
-                    },
-                    "📋 Markdown", // [2] Task
-                    "Analiz et ve verileri çıkar", // [3] Prompt
-                    1 // [4] Page Number
-                }
-            };
-
-            var jsonPayload = JsonSerializer.Serialize(payload);
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            var postResponse = await _httpClient.PostAsync(postUrl, content);
-
-            if (!postResponse.IsSuccessStatusCode)
-                return $"POST Hatası: {postResponse.StatusCode}";
-
-            // Dönen JSON'dan event_id'yi alıyoruz
-            var postResult = await postResponse.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(postResult);
-            string eventId = doc.RootElement.GetProperty("event_id").GetString();
-
-            // 2. ADIM: SONUCU AL (GET)
-            // Aldığımız eventId ile sonuca gidiyoruz
-            string getUrl = $"https://merterbak-deepseek-ocr-demo.hf.space/gradio_api/call/run/{eventId}";
-
-            // AI'nın dökümanı işlemesi için kısa bir bekleme (opsiyonel ama sağlıklı olur)
-            await Task.Delay(2000);
-
-            var getResponse = await _httpClient.GetAsync(getUrl);
-            if (getResponse.IsSuccessStatusCode)
-            {
-                var finalResult = await getResponse.Content.ReadAsStringAsync();
-                // Not: Gradio bazen "data: ..." şeklinde Server-Sent Events döner. 
-                // Hackathon MVP'si için gelen ham metni doğrudan döndürebilirsin.
-                return finalResult;
+                var parts = rawContent.Split("data: ");
+                return parts.Last().Split("\n")[0]; // En güncel ve temiz veri dizisini alır
             }
-
-            return "Sonuç alma hatası: " + getResponse.StatusCode;
+            return "Analiz başarısız.";
         }
     }
 }
