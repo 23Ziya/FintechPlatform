@@ -1,7 +1,7 @@
-﻿using System;
-
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System;
+using FintechPlatform.Models;
 
 public class ApplicationDbContext : IdentityDbContext
 {
@@ -10,6 +10,7 @@ public class ApplicationDbContext : IdentityDbContext
 
     public DbSet<Company> Companies { get; set; }
     public DbSet<FinancialReport> FinancialReports { get; set; }
+    public DbSet<SubscriptionRequest> SubscriptionRequests { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
