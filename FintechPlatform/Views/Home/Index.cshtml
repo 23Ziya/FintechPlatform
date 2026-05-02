@@ -16,8 +16,8 @@
                     <!-- Dosya göndereceğimiz için enctype önemli! -->
                     <form asp-action="ProcessOcr" asp-controller="Home" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <label class="form-label">Fiş, Fatura veya Bilanço (PNG/JPG):</label>
-                            <input type="file" asp-for="UploadedFile" class="form-control" accept="image/*" required />
+                            <label class="form-label">Finansal Belge (PDF, PNG veya JPG):</label>
+                            <input type="file" asp-for="UploadedFile" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required />
                         </div>
                         <button type="submit" class="btn btn-success w-100">AI ile Analiz Et</button>
                     </form>

@@ -28,20 +28,19 @@ public class HomeController : Controller
     {
         if (model.UploadedFile != null && model.UploadedFile.Length > 0)
         {
-            // 1. Dosyayý hafýzaya alýp Base64 formatýna çeviriyoruz
             using var ms = new MemoryStream();
             await model.UploadedFile.CopyToAsync(ms);
             var fileBytes = ms.ToArray();
             string base64String = Convert.ToBase64String(fileBytes);
 
-            // 2. Servise gönderip OCR sonucunu bekliyoruz
-            string result = await _ocrService.ProcessImageAsync(base64String);
+            // Dosya tipini alýyoruz (Örn: "application/pdf" veya "image/jpeg")
+            string contentType = model.UploadedFile.ContentType;
 
-            // 3. Sonucu View modeline atýyoruz
+            // Servise hem veriyi hem de tipini gönderiyoruz
+            string result = await _ocrService.ProcessFileAsync(base64String, contentType);
+
             model.OcrResult = result;
         }
-
-        // Sonuçlarla birlikte ayný sayfayý (Index) tekrar yüklüyoruz
         return View("Index", model);
     }
 }
