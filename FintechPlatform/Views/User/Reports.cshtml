@@ -1,0 +1,12 @@
+﻿@if (Model.IsPremium) // Şirket modelinde bu alanın olduğunu varsayıyoruz
+{
+    <a href="@Url.Action("GetAiReport", "Reports", new { id = Model.Id })" class="btn btn-success">
+        AI Analiz Raporunu Gör
+    </a>
+}
+else
+{
+    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#premiumModal">
+        AI Analiz (Premium Özellik)
+    </button>
+}
