@@ -1,8 +1,51 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model FintechPlatform.Models.OcrViewModel
+
+@{
+    ViewData["Title"] = "OCR Analiz Paneli";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome Gizem</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-5">
+    <div class="row">
+        <!-- SOL TARAF: Dosya Yükleme Alanı -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4>Finansal Belge Yükle</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Dosya göndereceğimiz için enctype önemli! -->
+                    <form asp-action="ProcessOcr" asp-controller="Home" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Fiş, Fatura veya Bilanço (PNG/JPG):</label>
+                            <input type="file" asp-for="UploadedFile" class="form-control" accept="image/*" required />
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">AI ile Analiz Et</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ TARAF: Sonuç Görüntüleme Alanı -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h4>DeepSeek OCR Sonucu</h4>
+                </div>
+                <div class="card-body" style="min-height: 300px; background-color: #f8f9fa;">
+                    @if (!string.IsNullOrEmpty(Model.OcrResult))
+                    {
+                        <!-- Gelen veriyi burada gösteriyoruz -->
+                        <pre><code>@Model.OcrResult</code></pre>
+
+                        <!-- İlerleyen aşamalarda Üye 1'in veritabanına göndermek için buraya "Kaydet" butonu ekleyeceksin -->
+                        <button class="btn btn-warning mt-3 w-100">Veritabanına Kaydet</button>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Sonuçlar burada görüntülenecek...</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
