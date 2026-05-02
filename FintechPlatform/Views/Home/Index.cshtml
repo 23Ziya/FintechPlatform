@@ -1,94 +1,86 @@
 ﻿@model FintechPlatform.Models.OcrViewModel
 
-@{
-    ViewData["Title"] = "OCR Analiz Paneli";
-}
-
-<div class="container mt-5">
+<div class="container-fluid mt-4">
     <div class="row">
-        <!-- SOL TARAF: Dosya Yükleme -->
-        <div class="col-md-5">
-            <div class="card shadow border-0">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Finansal Belge Yükle</h5>
-                </div>
+        <!-- SOL: Yükleme Paneli -->
+        <div class="col-md-4">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white"><h5>Belge Analiz Sistemi</h5></div>
                 <div class="card-body">
-                    <form asp-action="ProcessOcr" asp-controller="Home" method="post" enctype="multipart/form-data">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Belge Seçiniz (PDF, PNG, JPG):</label>
-                            <input type="file" asp-for="UploadedFile" class="form-control form-control-lg" accept=".jpg,.jpeg,.png,.pdf" required />
-                            <div class="form-text">Maksimum dosya boyutu: 5MB</div>
-                        </div>
-                        <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm">
-                            <i class="bi bi-cpu"></i> AI ile Analiz Et
-                        </button>
+                    <form asp-action="ProcessOcr" method="post" enctype="multipart/form-data">
+                        <input type="file" asp-for="UploadedFile" class="form-control mb-3" accept=".pdf,.png,.jpg" required />
+                        <button type="submit" class="btn btn-primary w-100">AI Analizi Başlat</button>
                     </form>
                 </div>
             </div>
-
-            @if (!string.IsNullOrEmpty(Model.OcrResult))
-            {
-                <div class="card mt-4 shadow border-0">
-                    <div class="card-header bg-secondary text-white">
-                        <h6 class="mb-0">Ham OCR Çıktısı (Debug)</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <textarea class="form-control font-monospace text-xs" style="height: 200px; font-size: 12px;" readonly>@Model.OcrResult</textarea>
-                    </div>
-                </div>
-            }
         </div>
 
-        <!-- SAĞ TARAF: Otomatik Doldurulan Form (Düzenlenebilir) -->
-        <div class="col-md-7">
-            <div class="card shadow border-0">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0"><i class="bi bi-magic"></i> AI Analiz Sonuçları (Otomatik Dolum)</h5>
+        <!-- SAĞ: Müşteri Bilgi Formu -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white d-flex justify-content-between">
+                    <h5 class="mb-0">Müşteri (Şirket) Temel Bilgileri</h5>
+                    <span class="badge bg-success">AI Destekli Otomatik Dolum</span>
                 </div>
-                <div class="card-body" style="background-color: #fcfcfc;">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Şirket Ünvanı</label>
+                            <input type="text" asp-for="SirketUnvani" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Vergi Numarası</label>
+                            <input type="text" asp-for="VergiNumarasi" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ticaret Sicil No</label>
+                            <input type="text" asp-for="TicaretSicilNo" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kuruluş Tarihi / Yıl</label>
+                            <input type="text" asp-for="KurulusTarihi" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Faaliyet Alanı (Kod)</label>
+                            <input type="text" asp-for="FaaliyetAlani" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Yetkili Kişi</label>
+                            <input type="text" asp-for="YetkiliKisi" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Yıllık Ciro (Gerçekleşen)</label>
+                            <input type="text" asp-for="YillikCiro" class="form-control" />
+                        </div>
+
+                        <hr />
+                        <h6>Sözleşme Bilgileri (Manuel Giriş)</h6>
+                        <div class="col-md-4">
+                            <label class="form-label">Sözleşme Türü</label>
+                            <select asp-for="SozlesmeTuru" class="form-select">
+                                <option>Rapor</option>
+                                <option>Analiz</option>
+                                <option>Sistem</option>
+                                <option>Diğer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Başlangıç Tarihi</label>
+                            <input type="date" asp-for="SozlesmeBaslangic" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bitiş Tarihi</label>
+                            <input type="date" asp-for="SozlesmeBitis" class="form-control" />
+                        </div>
+                    </div>
+
+                    <button class="btn btn-warning mt-4 w-100 fw-bold">Müşteriyi Kaydet</button>
+
                     @if (!string.IsNullOrEmpty(Model.OcrResult))
                     {
-                        <div class="alert alert-info py-2">
-                            <i class="bi bi-info-circle"></i> Veriler beyannameden otomatik okunmuştur. Gerekiyorsa elle düzeltebilirsiniz.
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="fw-bold">Ticari Bilanço Karı (TL)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">₺</span>
-                                    <input type="text" asp-for="TicariKar" class="form-control form-control-lg bg-white" placeholder="0,00" />
-                                </div>
-                            </div>
-
-                            <div class="col-12">
-                                <label class="fw-bold">Kanunen Kabul Edilmeyen Gider (KKEG)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">₺</span>
-                                    <input type="text" asp-for="KKEG" class="form-control form-control-lg bg-white" placeholder="0,00" />
-                                </div>
-                            </div>
-
-                            <div class="col-12">
-                                <label class="fw-bold">Geçici Vergi Matrahı</label>
-                                <div class="input-group border-primary">
-                                    <span class="input-group-text bg-primary text-white">₺</span>
-                                    <input type="text" asp-for="VergiMatrahi" class="form-control form-control-lg fw-bold" placeholder="0,00" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-top">
-                            <button type="button" class="btn btn-warning btn-lg w-100 fw-bold shadow">
-                                <i class="bi bi-database-fill-add"></i> Veritabanına Kaydet
-                            </button>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center py-5">
-                            <i class="bi bi-robot display-1 text-light"></i>
-                            <p class="text-muted mt-3">Belge yüklendiğinde analiz sonuçları burada listelenecek.</p>
+                        <div class="mt-4 p-3 bg-light border rounded">
+                            <h6>Hata Ayıklama (AI ne gördü?):</h6>
+                            <pre style="white-space: pre-wrap; font-size: 11px;">@Model.OcrResult</pre>
                         </div>
                     }
                 </div>

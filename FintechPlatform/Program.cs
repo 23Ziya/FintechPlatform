@@ -18,7 +18,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddHttpClient<HuggingFaceOcrService>();
+builder.Services.AddHttpClient<GeminiService>();
 
 var app = builder.Build();
 

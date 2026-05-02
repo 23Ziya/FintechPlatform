@@ -1,58 +1,65 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using FintechPlatform.Models;
 using FintechPlatform.Services;
-using System.Text.RegularExpressions; // Regex için gerekli
+using System.Text.RegularExpressions;
+using System.Text.Json;
 
 namespace FintechPlatform.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly HuggingFaceOcrService _ocrService;
+    //private readonly HuggingFaceOcrService _ocrService;
+    private readonly GeminiService _geminiService; // Bunu eklemelisin
 
-    public HomeController(HuggingFaceOcrService ocrService)
+    public HomeController(GeminiService geminiService)
     {
-        _ocrService = ocrService;
+       // _ocrService = ocrService;
+        _geminiService = geminiService; // Atamayý yapmalýsýn
     }
 
-    public IActionResult Index()
-    {
-        return View(new OcrViewModel());
-    }
+    public IActionResult Index() => View(new OcrViewModel());
 
     [HttpPost]
     public async Task<IActionResult> ProcessOcr(OcrViewModel model)
     {
-        if (model.UploadedFile != null && model.UploadedFile.Length > 0)
+        if (model.UploadedFile != null)
         {
             using var ms = new MemoryStream();
             await model.UploadedFile.CopyToAsync(ms);
-            var fileBytes = ms.ToArray();
-            string base64String = Convert.ToBase64String(fileBytes);
-            string contentType = model.UploadedFile.ContentType;
+            string base64 = Convert.ToBase64String(ms.ToArray());
 
-            // 1. AI Servisinden ham metni al
-            string result = await _ocrService.ProcessFileAsync(base64String, contentType);
-            model.OcrResult = result;
+            // Gemini servisini çaðýr
+            string jsonResult = await _geminiService.ProcessDocumentAsync(base64, model.UploadedFile.ContentType);
 
-            // 2. Ham metin içinden verileri Regex ile ayýkla (Parsing)
-            // Beyanname formatýna göre sayýlarý yakalar (Örn: 1.920.200,90)
-            model.TicariKar = ExtractValue(result, "Ticari Bilanço Karý");
-            model.KKEG = ExtractValue(result, "Kanunen Kabul Edilmeyen Gider");
-            model.VergiMatrahi = ExtractValue(result, "Geçici Vergi Matrahý");
+            // Gelen JSON'u modele otomatik eþle
+            var extractedData = JsonSerializer.Deserialize<GeminiResponse>(jsonResult);
+
+            if (extractedData != null)
+            {
+                model.SirketUnvani = extractedData.sirketUnvani; // Örn: BÝOS MAKÝNA
+                model.VergiNumarasi = extractedData.vergiNumarasi; // Örn: 1760430587[cite: 2]
+                model.TicaretSicilNo = extractedData.ticaretSicilNo;
+                model.KurulusTarihi = extractedData.kurulusTarihi;
+                model.VergiMatrahi = extractedData.vergiMatrahi; // Örn: 2.514.347,66[cite: 2]
+                model.YillikCiro = extractedData.yillikCiro;
+            }
+            model.OcrResult = jsonResult;
         }
         return View("Index", model);
     }
 
-    // Yardýmcý Metot: Metin içinden etiket ismine göre sayýsal deðeri çeker
-    private string ExtractValue(string text, string fieldName)
+    // JSON verisini karþýlamak için geçici bir sýnýf (Controller içinde en alta ekleyebilirsin)
+    public class GeminiResponse
     {
-        if (string.IsNullOrEmpty(text)) return "0,00";
-
-        // Regex: Alan adýndan sonra gelen boru (|) karakterini ve yanýndaki sayýyý yakalar
-        string pattern = $@"{fieldName}\s*\|\s*([\d\.,]+)";
-        var match = Regex.Match(text, pattern);
-
-        return match.Success ? match.Groups[1].Value : "0,00";
+        public string sirketUnvani { get; set; }
+        public string vergiNumarasi { get; set; }
+        public string ticaretSicilNo { get; set; }
+        public string kurulusTarihi { get; set; }
+        public string faaliyetAlani { get; set; }
+        public string yetkiliKisi { get; set; }
+        public string yillikCiro { get; set; }
+        public string vergiMatrahi { get; set; }
+        public string ticariKar { get; set; }
+        public string kkeg { get; set; }
     }
 }
