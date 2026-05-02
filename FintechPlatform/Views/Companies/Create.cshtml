@@ -1,58 +1,95 @@
-﻿@model Company
+﻿@model FintechPlatform.Models.OcrViewModel
 
-@{
-    ViewData["Title"] = "Create";
-}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- SOL: Yükleme Paneli -->
+        <div class="col-md-4">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0"><i class="bi bi-cloud-arrow-up"></i> Belge Analiz Sistemi</h5>
+                </div>
+                <div class="card-body bg-light">
+                    <!-- HEDEF: CompaniesController / ProcessOcr -->
+                    <form asp-action="ProcessOcr" asp-controller="Companies" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">DOSYA YÜKLE (PDF, PNG, JPG)</label>
+                            <input type="file" asp-for="UploadedFile" class="form-control border-0 shadow-sm" accept=".pdf,.png,.jpg" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm fw-bold">
+                            <i class="bi bi-cpu"></i> AI ANALİZİ BAŞLAT
+                        </button>
+                    </form>
+                </div>
+            </div>
 
-<h1>Create</h1>
+            @if (!string.IsNullOrEmpty(Model.OcrResult) && Model.OcrResult.Contains("\"error\":"))
+            {
+                <div class="alert alert-danger shadow-sm border-0">
+                    <i class="bi bi-exclamation-octagon-fill"></i> Analiz sırasında bir sorun oluştu. Lütfen dökümanı tekrar yükleyin veya elle doldurun.
+                </div>
+            }
+        </div>
 
-<h4>Company</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+        <!-- SAĞ: Form Alanı -->
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-building"></i> Müşteri (Şirket) Temel Bilgileri</h5>
+                    <span class="badge bg-success">AI AKTİF</span>
+                </div>
+                <div class="card-body" style="background-color: #f8f9fa;">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">ŞİRKET ÜNVANI</label>
+                            <input type="text" asp-for="SirketUnvani" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">VERGİ NUMARASI</label>
+                            <input type="text" asp-for="VergiNumarasi" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">TİCARET SİCİL NO</label>
+                            <input type="text" asp-for="TicaretSicilNo" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">KURULUŞ TARİHİ</label>
+                            <input type="text" asp-for="KurulusTarihi" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">YETKİLİ KİŞİ</label>
+                            <input type="text" asp-for="YetkiliKisi" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">SERMAYE / CİRO</label>
+                            <input type="text" asp-for="YillikCiro" class="form-control border-0 shadow-sm py-2" />
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-warning btn-lg w-100 fw-bold shadow">KAYDET VE İLERLE</button>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.OcrResult))
+                    {
+                        <div class="mt-4">
+                            <div class="accordion border-0 shadow-sm" id="aiAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed py-2 bg-white text-secondary small fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#aiDebug">
+                                            <i class="bi bi-bug me-2"></i> ANALİZ GÜNLÜĞÜ
+                                        </button>
+                                    </h2>
+                                    <div id="aiDebug" class="accordion-collapse collapse">
+                                        <div class="accordion-body bg-dark text-success p-3 rounded-bottom">
+                                            <pre class="m-0" style="font-size: 12px;"><code>@Model.OcrResult</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="TaxNumber" class="control-label"></label>
-                <input asp-for="TaxNumber" class="form-control" />
-                <span asp-validation-for="TaxNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Address" class="control-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ContractStartDate" class="control-label"></label>
-                <input asp-for="ContractStartDate" class="form-control" />
-                <span asp-validation-for="ContractStartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ContractAmount" class="control-label"></label>
-                <input asp-for="ContractAmount" class="form-control" />
-                <span asp-validation-for="ContractAmount" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsApproved" /> @Html.DisplayNameFor(model => model.IsApproved)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

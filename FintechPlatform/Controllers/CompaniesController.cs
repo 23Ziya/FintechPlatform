@@ -1,155 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using FintechPlatform.Models;
+using FintechPlatform.Services;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
-namespace FintechPlatform.Controllers
+namespace FintechPlatform.Controllers;
+//[Authorize(Roles = "Admin")]
+
+public class CompaniesController : Controller
 {
-    public class CompaniesController : Controller
+    private readonly GeminiService _geminiService;
+
+    public CompaniesController(GeminiService geminiService)
     {
-        private readonly ApplicationDbContext _context;
+        _geminiService = geminiService;
+    }
 
-        public CompaniesController(ApplicationDbContext context)
+    // Admin'in yeni şirket ekleme ve AI analiz sayfası
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View(new OcrViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ProcessOcr(OcrViewModel model)
+    {
+        if (model.UploadedFile != null && model.UploadedFile.Length > 0)
         {
-            _context = context;
-        }
+            using var ms = new MemoryStream();
+            await model.UploadedFile.CopyToAsync(ms);
+            string base64 = Convert.ToBase64String(ms.ToArray());
 
-        // GET: Companies
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Companies.ToListAsync());
-        }
+            // Gemini 1.5 Flash ile belge analizi[cite: 1]
+            string jsonResult = await _geminiService.ProcessDocumentAsync(base64, model.UploadedFile.ContentType);
+            model.OcrResult = jsonResult;
 
-        // GET: Companies/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var company = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            return View(company);
-        }
-
-        // GET: Companies/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Companies/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,TaxNumber,Address,ContractStartDate,ContractAmount,IsApproved")] Company company)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(company);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(company);
-        }
-
-        // GET: Companies/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
-            {
-                return NotFound();
-            }
-            return View(company);
-        }
-
-        // POST: Companies/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,TaxNumber,Address,ContractStartDate,ContractAmount,IsApproved")] Company company)
-        {
-            if (id != company.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
+            if (!string.IsNullOrEmpty(jsonResult) && jsonResult.Trim().StartsWith("{") && !jsonResult.Contains("\"error\":"))
             {
                 try
                 {
-                    _context.Update(company);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CompanyExists(company.Id))
+                    var data = JsonSerializer.Deserialize<GeminiResponse>(jsonResult);
+                    if (data != null)
                     {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
+                        // FADA ve BİOS[cite: 2] dökümanlarından gelen veriler
+                        model.SirketUnvani = data.sirketUnvani;
+                        model.VergiNumarasi = data.vergiNumarasi;
+                        model.TicaretSicilNo = data.ticaretSicilNo;
+                        model.KurulusTarihi = data.kurulusTarihi;
+                        model.YetkiliKisi = data.yetkiliKisi;
+                        model.YillikCiro = data.yillikCiro;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch { /* Hata yönetimi */ }
             }
-            return View(company);
         }
+        return View("Create", model);
+    }
 
-        // GET: Companies/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var company = await _context.Companies
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (company == null)
-            {
-                return NotFound();
-            }
-
-            return View(company);
-        }
-
-        // POST: Companies/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var company = await _context.Companies.FindAsync(id);
-            if (company != null)
-            {
-                _context.Companies.Remove(company);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool CompanyExists(int id)
-        {
-            return _context.Companies.Any(e => e.Id == id);
-        }
+    public class GeminiResponse
+    {
+        public string? sirketUnvani { get; set; }
+        public string? vergiNumarasi { get; set; }
+        public string? ticaretSicilNo { get; set; }
+        public string? kurulusTarihi { get; set; }
+        public string? yetkiliKisi { get; set; }
+        public string? yillikCiro { get; set; }
     }
 }

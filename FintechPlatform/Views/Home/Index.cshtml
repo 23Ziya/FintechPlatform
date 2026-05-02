@@ -1,89 +1,29 @@
-﻿@model FintechPlatform.Models.OcrViewModel
+﻿<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Fintech Veri Yönetim Sistemi</h1>
+        <p class="text-muted">Lütfen erişmek istediğiniz paneli seçiniz.</p>
+    </div>
 
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- SOL: Yükleme Paneli -->
-        <div class="col-md-4">
-            <div class="card shadow border-primary">
-                <div class="card-header bg-primary text-white"><h5>Belge Analiz Sistemi</h5></div>
-                <div class="card-body">
-                    <form asp-action="ProcessOcr" method="post" enctype="multipart/form-data">
-                        <input type="file" asp-for="UploadedFile" class="form-control mb-3" accept=".pdf,.png,.jpg" required />
-                        <button type="submit" class="btn btn-primary w-100">AI Analizi Başlat</button>
-                    </form>
-                </div>
+    <div class="row g-4 justify-content-center">
+        <!-- ADMIN PANELİ KARTI -->
+        <div class="col-md-5">
+            <div class="card shadow-sm border-primary h-100 p-4 text-center">
+                <i class="bi bi-shield-lock display-4 text-primary mb-3"></i>
+                <h4>Admin Paneli</h4>
+                <p class="small text-muted mb-4">Tüm firma finansal verileri, AI analiz süreçleri ve uzman görüşü yönetimi.</p>
+                <a asp-controller="Companies" asp-action="Create" class="btn btn-primary fw-bold py-2">
+                    Yönetime Git
+                </a>
             </div>
         </div>
 
-        <!-- SAĞ: Müşteri Bilgi Formu -->
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-dark text-white d-flex justify-content-between">
-                    <h5 class="mb-0">Müşteri (Şirket) Temel Bilgileri</h5>
-                    <span class="badge bg-success">AI Destekli Otomatik Dolum</span>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">Şirket Ünvanı</label>
-                            <input type="text" asp-for="SirketUnvani" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Vergi Numarası</label>
-                            <input type="text" asp-for="VergiNumarasi" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Ticaret Sicil No</label>
-                            <input type="text" asp-for="TicaretSicilNo" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Kuruluş Tarihi / Yıl</label>
-                            <input type="text" asp-for="KurulusTarihi" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Faaliyet Alanı (Kod)</label>
-                            <input type="text" asp-for="FaaliyetAlani" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Yetkili Kişi</label>
-                            <input type="text" asp-for="YetkiliKisi" class="form-control" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Yıllık Ciro (Gerçekleşen)</label>
-                            <input type="text" asp-for="YillikCiro" class="form-control" />
-                        </div>
-
-                        <hr />
-                        <h6>Sözleşme Bilgileri (Manuel Giriş)</h6>
-                        <div class="col-md-4">
-                            <label class="form-label">Sözleşme Türü</label>
-                            <select asp-for="SozlesmeTuru" class="form-select">
-                                <option>Rapor</option>
-                                <option>Analiz</option>
-                                <option>Sistem</option>
-                                <option>Diğer</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Başlangıç Tarihi</label>
-                            <input type="date" asp-for="SozlesmeBaslangic" class="form-control" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Bitiş Tarihi</label>
-                            <input type="date" asp-for="SozlesmeBitis" class="form-control" />
-                        </div>
-                    </div>
-
-                    <button class="btn btn-warning mt-4 w-100 fw-bold">Müşteriyi Kaydet</button>
-
-                    @if (!string.IsNullOrEmpty(Model.OcrResult))
-                    {
-                        <div class="mt-4 p-3 bg-light border rounded">
-                            <h6>Hata Ayıklama (AI ne gördü?):</h6>
-                            <pre style="white-space: pre-wrap; font-size: 11px;">@Model.OcrResult</pre>
-                        </div>
-                    }
-                </div>
+        <!-- KULLANICI PANELİ KARTI -->
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100 p-4 text-center">
+                <i class="bi bi-person-workspace display-4 text-secondary mb-3"></i>
+                <h4>Kullanıcı Paneli</h4>
+                <p class="small text-muted mb-4">Sözleşmeli şirket verilerini görüntüleme ve finansal rapor takibi.</p>
+                <a href="#" class="btn btn-outline-secondary py-2 disabled">Yakında (Modül Hazırlanıyor)</a>
             </div>
         </div>
     </div>
